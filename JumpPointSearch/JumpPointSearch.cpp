@@ -87,7 +87,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
-
 	case WM_CHAR:
 		if (GetAsyncKeyState(VK_SPACE) & 0x8000){
 			JumpPointSearch(g_hWnd);

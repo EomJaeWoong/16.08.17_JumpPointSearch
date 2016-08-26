@@ -6,6 +6,7 @@ int iStartX, iStartY, iEndX, iEndY;
 BOOL isObsc, bObsticle;
 list<NODE *> ltOpenlist, ltCloselist;
 NODE *EndNode;
+int iDirColor;
 
 void Init()
 {
@@ -70,7 +71,18 @@ void JumpPointSearch(HWND hWnd)
 			int iDirY = stSearchNode->iY - stSearchNode->pParent->iY;
 
 			if (iDirX == 0 && iDirY < 0)							//UU
+			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
+
+				if (MAP[stSearchNode->iY][stSearchNode->iX - 1] == OBSTICLE && 
+					MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LU);
+
+				else if (MAP[stSearchNode->iY][stSearchNode->iX + 1] == OBSTICLE && 
+					MAP[stSearchNode->iY - 1][stSearchNode->iX + 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RU);
+			}
+
 			else if (iDirX > 0 && iDirY < 0)						//RU
 			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
@@ -78,23 +90,58 @@ void JumpPointSearch(HWND hWnd)
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RU);
 			}
 			else if (iDirX > 0 && iDirY == 0)						//RR
+			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
+
+				if (MAP[stSearchNode->iY - 1][stSearchNode->iX] == OBSTICLE && 
+					MAP[stSearchNode->iY - 1][stSearchNode->iX + 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RU);
+
+				else if (MAP[stSearchNode->iY + 1][stSearchNode->iX] == OBSTICLE &&
+				MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RD);
+			}
+
 			else if (iDirX > 0 && iDirY > 0)						//RD
 			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RD);
 			}
+
 			else if (iDirX == 0 && iDirY > 0)						//DD
+			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
+
+				if (MAP[stSearchNode->iY][stSearchNode->iX - 1] == OBSTICLE &&
+					MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LD);
+
+				else if (MAP[stSearchNode->iY][stSearchNode->iX + 1] == OBSTICLE &&
+					MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RD);
+			}
+
 			else if (iDirX < 0 && iDirY > 0)						//LD
 			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LD);
 			}
+
 			else if (iDirX < 0 && iDirY == 0)						//LL
+			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
+
+				if (MAP[stSearchNode->iY - 1][stSearchNode->iX] == OBSTICLE && 
+					MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LU);
+
+				else if (MAP[stSearchNode->iY + 1][stSearchNode->iX] == OBSTICLE && 
+					MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
+					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LD);
+			}
+
 			else if (iDirX < 0 && iDirY < 0)						//LU
 			{
 				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
@@ -134,6 +181,7 @@ BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY)
 
 	*pX = iX;
 	*pY = iY;
+	if (MAP[iY][iX] == BLANK) MAP[iY][iX] = iDir;
 
 	// µµÂøÁöÁ¡
 	if (iX == iEndX && iY == iEndY)
@@ -239,10 +287,10 @@ BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY)
 			(MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK))
 			return TRUE;
 
-		Jump(iX + 1, iY + 1, iDir, pX, pY);
-
-		if		(Jump(iX, iY + 1, DD, pX, pY))	*pY = iY;
+		if (Jump(iX, iY + 1, DD, pX, pY))	*pY = iY;
 		else if (Jump(iX + 1, iY, RR, pX, pY))  *pX = iX;
+
+		Jump(iX + 1, iY + 1, iDir, pX, pY);	
 		
 		break;
 
