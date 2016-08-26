@@ -1,18 +1,18 @@
 #ifndef __ASTAR__H__
 #define __ASTAR__H__
 
-#define MAPSIZE_Y 20
-#define MAPSIZE_X 40
-#define TILE_SIZE 30
+#define MAPSIZE_Y 60
+#define MAPSIZE_X 80
+#define TILE_SIZE 15
 
-#define UU 0
-#define RU 1
-#define RR 2
-#define RD 3
-#define DD 4
-#define LD 5
-#define LL 6
-#define LU 7
+#define UU 10
+#define RU 11
+#define RR 12
+#define RD 13
+#define DD 14
+#define LD 15
+#define LL 16
+#define LU 17
 
 #define BLANK 0
 #define START 1
@@ -45,14 +45,13 @@ struct lessF
 // MAP 초기화
 /*---------------------------------------------------------------------------------*/
 void		Init();
-void		InitMap();
 
 /*---------------------------------------------------------------------------------*/
 // A* 길찾기
 /*---------------------------------------------------------------------------------*/
 void		JumpPointSearch(HWND hWnd);
 void		CheckDirection(int iX, int iY, NODE * pParent, int iDir);
-BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY);
+BOOL		Jump(int iX, int iY, int iDir, int *pX, int *pY);
 
 /*---------------------------------------------------------------------------------*/
 // Node 관련

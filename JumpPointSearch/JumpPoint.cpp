@@ -5,6 +5,7 @@ BYTE MAP[MAPSIZE_Y][MAPSIZE_X];
 int iStartX, iStartY, iEndX, iEndY;
 BOOL isObsc, bObsticle;
 list<NODE *> ltOpenlist, ltCloselist;
+NODE *EndNode;
 
 void Init()
 {
@@ -40,14 +41,70 @@ void JumpPointSearch(HWND hWnd)
 		stSearchNode = ltOpenlist.front();
 		ltOpenlist.pop_front();
 
-		CheckDirection(stSearchNode->iX, stSearchNode->iY - 1, stSearchNode, UU);
-		CheckDirection(stSearchNode->iX + 1, stSearchNode->iY - 1, stSearchNode, RU);
-		CheckDirection(stSearchNode->iX + 1, stSearchNode->iY, stSearchNode, RR);
-		CheckDirection(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode, RD);
-		CheckDirection(stSearchNode->iX, stSearchNode->iY + 1, stSearchNode, DD);
-		CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
-		CheckDirection(stSearchNode->iX - 1, stSearchNode->iY, stSearchNode, LL);
-		CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
+		if (stSearchNode->iX == iEndX && stSearchNode->iY == iEndY)
+		{
+			EndNode = stSearchNode;
+			break;
+			//부모와의 경로 그리고 끝
+		}
+
+		ltCloselist.push_back(stSearchNode);
+		MAP[stSearchNode->iY][stSearchNode->iX] = DONE;
+
+		if (stSearchNode->pParent == NULL)
+		{
+			CheckDirection(stSearchNode->iX, stSearchNode->iY - 1, stSearchNode, UU);
+			CheckDirection(stSearchNode->iX + 1, stSearchNode->iY - 1, stSearchNode, RU);
+			CheckDirection(stSearchNode->iX + 1, stSearchNode->iY, stSearchNode, RR);
+			CheckDirection(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode, RD);
+			CheckDirection(stSearchNode->iX, stSearchNode->iY + 1, stSearchNode, DD);
+			CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
+			CheckDirection(stSearchNode->iX - 1, stSearchNode->iY, stSearchNode, LL);
+			CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
+		}
+
+		else
+		{
+			//부모와 자신의 좌표를 통해 방향 구한후 checkDirection
+			int iDirX = stSearchNode->iX - stSearchNode->pParent->iX;
+			int iDirY = stSearchNode->iY - stSearchNode->pParent->iY;
+
+			if (iDirX == 0 && iDirY < 0)							//UU
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
+			else if (iDirX > 0 && iDirY < 0)						//RU
+			{
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RU);
+			}
+			else if (iDirX > 0 && iDirY == 0)						//RR
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
+			else if (iDirX > 0 && iDirY > 0)						//RD
+			{
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RD);
+			}
+			else if (iDirX == 0 && iDirY > 0)						//DD
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
+			else if (iDirX < 0 && iDirY > 0)						//LD
+			{
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LD);
+			}
+			else if (iDirX < 0 && iDirY == 0)						//LL
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
+			else if (iDirX < 0 && iDirY < 0)						//LU
+			{
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LU);
+			}
+		}
+
+		MAP[iStartY][iStartX] = START;
+		MAP[iEndY][iEndX] = END;
 
 		InvalidateRect(hWnd, NULL, false);
 		SendMessage(hWnd, WM_PAINT, 0, 0);
@@ -59,10 +116,11 @@ void JumpPointSearch(HWND hWnd)
 /*---------------------------------------------------------------------------------*/
 void CheckDirection(int iX, int iY, NODE * pParent, int iDir)
 {
-	int *iNodeX, *iNodeY;
-
-	Jump(iX, iY, iDir, iNodeX, iNodeY);
-
+	if (Jump(iX, iY, iDir, &iX, &iY))
+	{
+		ltOpenlist.push_back(CreateNode(iX, iY, pParent->fG + 1, pParent));
+		MAP[iY][iX] = CREATE;
+	}
 }
 
 /*---------------------------------------------------------------------------------*/
@@ -70,19 +128,174 @@ void CheckDirection(int iX, int iY, NODE * pParent, int iDir)
 /*---------------------------------------------------------------------------------*/
 BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY)
 {
+	if (((iX < 0) || (iY < 0) || (iX >= MAPSIZE_X) || (iY >= MAPSIZE_Y)) ||
+		MAP[iY][iX] == OBSTICLE)
+		return FALSE;
+
+	*pX = iX;
+	*pY = iY;
+
+	// 도착지점
+	if (iX == iEndX && iY == iEndY)
+		return TRUE;
+	/*
+	// o
+	// xㅁ
+	else if (MAP[iY][iX - 1] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK)
+	{
+		if (Jump(iX - 1, iY - 1, LU, &iX, &iY) || Jump(iX, iY - 1, UU, &iX, &iY))
+			return TRUE;
+	}
+
+	//   o
+	// ㅁx
+	else if (MAP[iY][iX + 1] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK)
+	{
+		if (Jump(iX + 1, iY - 1, RU, &iX, &iY) || Jump(iX, iY - 1, UU, &iX, &iY))
+			return TRUE;
+	}
+
+	// x o
+	// ㅁ
+	else if (MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK)
+	{
+		if (Jump(iX + 1, iY - 1, RU, &iX, &iY) || Jump(iX + 1, iY, RR, &iX, &iY))
+			return TRUE;
+	}
+
+	// ㅁ
+	// x o
+	else if (MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK)
+	{
+		if (Jump(iX + 1, iY + 1, RD, &iX, &iY) || Jump(iX + 1, iY, RR, &iX, &iY))
+			return TRUE;
+	}
+
+	// o x
+	//   ㅁ
+	else if (MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK)
+	{
+		if (Jump(iX - 1, iY - 1, LU, &iX, &iY) || Jump(iX - 1, iY, LL, &iX, &iY))
+			return TRUE;
+	}
+
+	//   ㅁ
+	// o x
+	else if (MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK)
+	{
+		if (Jump(iX - 1, iY + 1, LD, &iX, &iY) || Jump(iX - 1, iY, LL, &iX, &iY))
+			return TRUE;
+	}
+
+	// x ㅁ
+	// o 
+	else if (MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK)
+	{
+		if (Jump(iX - 1, iY + 1, LD, &iX, &iY) || Jump(iX, iY + 1, DD, &iX, &iY))
+			return TRUE;
+
+	}
+
+	// ㅁ x
+	//    o
+	else if (MAP[iY][iX + 1] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK)
+	{
+		if (Jump(iX + 1, iY + 1, RD, &iX, &iY) || Jump(iX, iY + 1, DD, &iX, &iY))
+			return TRUE;
+	}
+	*/
 	switch (iDir)
 	{
 	case UU:
+		if ((MAP[iY][iX - 1] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK) ||
+			(MAP[iY][iX + 1] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK))
+			return TRUE;
+		MAP[iY][iX] = UU;
+		Jump(iX, iY - 1, iDir, pX, pY);
+		break;
 
 	case RU:
+		if ((MAP[iY][iX - 1] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK) ||
+			(MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK))
+			return TRUE;
+
+		Jump(iX + 1, iY - 1, iDir, pX, pY);
+
+		if		(Jump(iX, iY - 1, UU, pX, pY))  *pY = iY;
+		else if (Jump(iX + 1, iY, RR, pX, pY)) *pX = iX;
+			
+		break;
 
 	case RR:
+		if ((MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK) ||
+			(MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK))
+			return TRUE;
+
+		Jump(iX + 1, iY, iDir, pX, pY);
+		break;
+
 	case RD:
+		if ((MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK) ||
+			(MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK))
+			return TRUE;
+
+		Jump(iX + 1, iY + 1, iDir, pX, pY);
+
+		if		(Jump(iX, iY + 1, DD, pX, pY))	*pY = iY;
+		else if (Jump(iX + 1, iY, RR, pX, pY))  *pX = iX;
+		
+		break;
+
 	case DD:
+		if ((MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK) ||
+			(MAP[iY][iX + 1] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK))
+			return TRUE;
+		MAP[iY][iX] = DD;
+		Jump(iX, iY + 1, iDir, pX, pY);
+		break;
+
 	case LD:
+		MAP[iY][iX] = LD;
+		if (!Jump(iX - 1, iY + 1, iDir, pX, pY))
+		{
+			Jump(iX - 1, iY, LL, pX, pY);
+			Jump(iX, iY + 1, DD, pX, pY);
+		}
+		break;
+
 	case LL:
+		if ((MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK)||
+			(MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK))
+		MAP[iY][iX] = LL;
+		Jump(iX - 1, iY, iDir, pX, pY);
+		break;
+
 	case LU:
+		MAP[iY][iX] = LU;
+		if (!Jump(iX - 1, iY - 1, iDir, pX, pY))
+		{
+			Jump(iX - 1, iY, LL, pX, pY);
+			Jump(iX, iY - 1, UU, pX, pY);
+		}
+		break;
 	}
+}
+
+/*---------------------------------------------------------------------------------*/
+// Node 생성
+/*---------------------------------------------------------------------------------*/
+NODE* CreateNode(int iX, int iY, float fG, NODE *pParent)
+{
+	NODE* stNode = new NODE;
+	stNode->iX = iX;
+	stNode->iY = iY;
+	stNode->pParent = pParent;
+
+	stNode->fG = fG;
+	stNode->fH = abs(stNode->iX - iEndX) + abs(stNode->iY - iEndY);
+	stNode->fF = stNode->fG + stNode->fH;
+
+	return stNode;
 }
 
 /*---------------------------------------------------------------------------------*/
@@ -97,6 +310,7 @@ void DrawMap(HDC hdc)
 	// Map 그리기
 	/*---------------------------------------------------------------------------------*/
 	HPEN hPen, hPenOld, hNullPen;
+	HBRUSH hBrush, hBrushOld;
 	hNullPen = (HPEN)GetStockObject(NULL_PEN);
 	hPen = CreatePen(PS_SOLID, 0, RGB(150, 150, 150));
 	hPenOld = (HPEN)SelectObject(hdc, hPen);
@@ -124,8 +338,7 @@ void DrawMap(HDC hdc)
 			// 시작점 그리기
 			/*---------------------------------------------------------------------------------*/
 			if (MAP[iCntY][iCntX] == START)
-			{
-				HBRUSH hBrush, hBrushOld;
+			{		
 				hBrush = CreateSolidBrush(RGB(0, 255, 0));
 				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
 
@@ -142,7 +355,6 @@ void DrawMap(HDC hdc)
 			/*---------------------------------------------------------------------------------*/
 			else if (MAP[iCntY][iCntX] == END)
 			{
-				HBRUSH hBrush, hBrushOld;
 				hBrush = CreateSolidBrush(RGB(255, 0, 0));
 				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
 
@@ -159,7 +371,6 @@ void DrawMap(HDC hdc)
 			/*---------------------------------------------------------------------------------*/
 			else if (MAP[iCntY][iCntX] == OBSTICLE)
 			{
-				HBRUSH hBrush, hBrushOld;
 				hBrush = CreateSolidBrush(RGB(150, 150, 150));
 				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
 
@@ -171,35 +382,132 @@ void DrawMap(HDC hdc)
 				DeleteObject(hBrushOld);
 			}
 
-			/*
 			else if (MAP[iCntY][iCntX] == CREATE)
 			{
-			HBRUSH hBrush, hBrushOld;
-			hBrush = CreateSolidBrush(RGB(0, 0, 255));
-			hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+				HBRUSH hBrush, hBrushOld;
+				hBrush = CreateSolidBrush(RGB(0, 0, 255));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
 
-			Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
-			(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
 
-			SelectObject(hdc, hBrushOld);
-			DeleteObject(hBrush);
-			DeleteObject(hBrushOld);
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
 			}
 
-			else if (MAP[iCntY][iCntX] == DONE )
+			else if (MAP[iCntY][iCntX] == DONE)
 			{
-			HBRUSH hBrush, hBrushOld;
-			hBrush = CreateSolidBrush(RGB(255, 255, 0));
-			hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+				HBRUSH hBrush, hBrushOld;
+				hBrush = CreateSolidBrush(RGB(255, 255, 0));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
 
-			Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
-			(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
 
-			SelectObject(hdc, hBrushOld);
-			DeleteObject(hBrush);
-			DeleteObject(hBrushOld);
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
 			}
-			*/
+
+			switch (MAP[iCntY][iCntX])
+			{
+			case UU:
+				hBrush = CreateSolidBrush(RGB(58, 250, 244));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+
+			case RU:
+				hBrush = CreateSolidBrush(RGB(245, 169, 225));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+
+			case RR:
+				hBrush = CreateSolidBrush(RGB(250, 75, 11));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+
+			case RD:
+				hBrush = CreateSolidBrush(RGB(35, 11, 244));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+
+			case DD:
+				hBrush = CreateSolidBrush(RGB(254, 11, 214));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+
+			case LD:
+				hBrush = CreateSolidBrush(RGB(150, 30, 100));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+
+			case LL:
+				hBrush = CreateSolidBrush(RGB(200, 150, 12));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+
+			case LU:
+				hBrush = CreateSolidBrush(RGB(255, 130, 100));
+				hBrushOld = (HBRUSH)SelectObject(hdc, hBrush);
+
+				Rectangle(hdc, iCntX * TILE_SIZE + 1, iCntY * TILE_SIZE + 1,
+					(iCntX + 1) * TILE_SIZE + 1, (iCntY + 1) * TILE_SIZE) + 2;
+
+				SelectObject(hdc, hBrushOld);
+				DeleteObject(hBrush);
+				DeleteObject(hBrushOld);
+				break;
+			}
 		}
 	}
 	SelectObject(hdc, hPenOld);
@@ -207,6 +515,26 @@ void DrawMap(HDC hdc)
 	DeleteObject(hPen);
 	DeleteObject(hPenOld);
 	DeleteObject(hNullPen);
+}
+
+void DrawPath(HDC hdc)
+{
+	HPEN hPen, hPenOld;
+	hPen = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
+	hPenOld = (HPEN)SelectObject(hdc, hPen);
+
+	if (EndNode != NULL){
+		while (EndNode->pParent != NULL)
+		{
+			MoveToEx(hdc, (EndNode->iX * TILE_SIZE) + (TILE_SIZE / 2),
+				(EndNode->iY * TILE_SIZE) + (TILE_SIZE / 2), NULL);
+			LineTo(hdc, (EndNode->pParent->iX * TILE_SIZE) + (TILE_SIZE / 2),
+				(EndNode->pParent->iY * TILE_SIZE) + (TILE_SIZE / 2));
+			EndNode = EndNode->pParent;
+		}
+	}
+	SelectObject(hdc, hPenOld);
+	DeleteObject(hPen);
 }
 
 /*---------------------------------------------------------------------------------*/

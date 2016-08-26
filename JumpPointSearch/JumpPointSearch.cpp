@@ -90,7 +90,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_CHAR:
 		if (GetAsyncKeyState(VK_SPACE) & 0x8000){
-			InitMap();
 			JumpPointSearch(g_hWnd);
 			InvalidateRect(g_hWnd, NULL, false);
 			SendMessage(hWnd, WM_PAINT, 0, 0);
@@ -136,6 +135,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		PatBlt(g_hMemDC, 0, 0, rWinRect.right, rWinRect.bottom, WHITENESS);
 		DrawMap(g_hMemDC);
+		DrawPath(g_hMemDC);
 
 		hdc = BeginPaint(hWnd, &ps);
 		BitBlt(hdc, 0, 0, rWinRect.right, rWinRect.bottom, g_hMemDC, 0, 0, SRCCOPY);
