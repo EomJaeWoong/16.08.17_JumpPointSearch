@@ -72,81 +72,153 @@ void JumpPointSearch(HWND hWnd)
 
 			if (iDirX == 0 && iDirY < 0)							//UU
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY - 1, stSearchNode, UU);
 
 				if (MAP[stSearchNode->iY][stSearchNode->iX - 1] == OBSTICLE && 
 					MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LU);
+					CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
 
 				else if (MAP[stSearchNode->iY][stSearchNode->iX + 1] == OBSTICLE && 
 					MAP[stSearchNode->iY - 1][stSearchNode->iX + 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RU);
+					CheckDirection(stSearchNode->iX + 1, stSearchNode->iY - 1, stSearchNode, RU);
 			}
 
 			else if (iDirX > 0 && iDirY < 0)						//RU
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RU);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY - 1, stSearchNode, UU);
+				CheckDirection(stSearchNode->iX + 1, stSearchNode->iY, stSearchNode, RR);
+				CheckDirection(stSearchNode->iX + 1, stSearchNode->iY - 1, stSearchNode, RU);
+
+				if (MAP[stSearchNode->iY + 1][stSearchNode->iX] == OBSTICLE &&
+					MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)	
+						MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] = CREATE;
+					//CheckDirection(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode, RD);
+				}
+
+				else if (MAP[stSearchNode->iY][stSearchNode->iX - 1] == OBSTICLE &&
+					MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+						MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] = CREATE;
+					//CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
+				}
 			}
 			else if (iDirX > 0 && iDirY == 0)						//RR
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
+				CheckDirection(stSearchNode->iX + 1, stSearchNode->iY, stSearchNode, RR);
 
 				if (MAP[stSearchNode->iY - 1][stSearchNode->iX] == OBSTICLE && 
 					MAP[stSearchNode->iY - 1][stSearchNode->iX + 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RU);
+					CheckDirection(stSearchNode->iX + 1, stSearchNode->iY - 1, stSearchNode, RU);
 
 				else if (MAP[stSearchNode->iY + 1][stSearchNode->iX] == OBSTICLE &&
 				MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RD);
+					CheckDirection(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode, RD);
 			}
 
 			else if (iDirX > 0 && iDirY > 0)						//RD
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RR);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RD);
+				CheckDirection(stSearchNode->iX + 1, stSearchNode->iY, stSearchNode, RR);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY + 1, stSearchNode, DD);
+				CheckDirection(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode, RD);
+
+				if (MAP[stSearchNode->iY][stSearchNode->iX - 1] == OBSTICLE &&
+					MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
+						MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] = CREATE;
+					//CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
+				}
+
+				else if (MAP[stSearchNode->iY][stSearchNode->iX - 1] == OBSTICLE &&
+					MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+						MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] = CREATE;
+					//CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
+				}
 			}
 
 			else if (iDirX == 0 && iDirY > 0)						//DD
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY + 1, stSearchNode, DD);
 
 				if (MAP[stSearchNode->iY][stSearchNode->iX - 1] == OBSTICLE &&
 					MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LD);
+					CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
 
 				else if (MAP[stSearchNode->iY][stSearchNode->iX + 1] == OBSTICLE &&
 					MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, RD);
+					CheckDirection(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode, RD);
 			}
 
 			else if (iDirX < 0 && iDirY > 0)						//LD
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, DD);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LD);
+				CheckDirection(stSearchNode->iX - 1, stSearchNode->iY, stSearchNode, LL);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY + 1, stSearchNode, DD);
+				CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
+
+				if (MAP[stSearchNode->iY - 1][stSearchNode->iX] == OBSTICLE &&
+					MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
+						MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] = CREATE;
+					//CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
+				}
+
+				else if (MAP[stSearchNode->iY][stSearchNode->iX + 1] == OBSTICLE &&
+					MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX + 1, stSearchNode->iY + 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] == BLANK)
+						MAP[stSearchNode->iY + 1][stSearchNode->iX + 1] = CREATE;
+					//CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
+				}
 			}
 
 			else if (iDirX < 0 && iDirY == 0)						//LL
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
+				CheckDirection(stSearchNode->iX - 1, stSearchNode->iY, stSearchNode, LL);
 
 				if (MAP[stSearchNode->iY - 1][stSearchNode->iX] == OBSTICLE && 
 					MAP[stSearchNode->iY - 1][stSearchNode->iX - 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LU);
+					CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
 
 				else if (MAP[stSearchNode->iY + 1][stSearchNode->iX] == OBSTICLE && 
 					MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
-					CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LD);
+					CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
 			}
 
 			else if (iDirX < 0 && iDirY < 0)						//LU
 			{
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LL);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, UU);
-				CheckDirection(stSearchNode->iX, stSearchNode->iY, stSearchNode, LU);
+				CheckDirection(stSearchNode->iX - 1, stSearchNode->iY, stSearchNode, LL);
+				CheckDirection(stSearchNode->iX, stSearchNode->iY - 1, stSearchNode, UU);
+				CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
+
+				if (MAP[stSearchNode->iY + 1][stSearchNode->iX] == OBSTICLE &&
+					MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] == BLANK)
+						MAP[stSearchNode->iY + 1][stSearchNode->iX - 1] = CREATE;
+					//CheckDirection(stSearchNode->iX - 1, stSearchNode->iY + 1, stSearchNode, LD);
+				}
+
+				else if (MAP[stSearchNode->iY][stSearchNode->iX + 1] == OBSTICLE &&
+					MAP[stSearchNode->iY - 1][stSearchNode->iX + 1] == BLANK)
+				{
+					ltOpenlist.push_back(CreateNode(stSearchNode->iX + 1, stSearchNode->iY - 1, stSearchNode->fG + 1, stSearchNode));
+					if (MAP[stSearchNode->iY - 1][stSearchNode->iX + 1] == BLANK)
+						MAP[stSearchNode->iY - 1][stSearchNode->iX + 1] = CREATE;
+					//CheckDirection(stSearchNode->iX - 1, stSearchNode->iY - 1, stSearchNode, LU);
+				}
 			}
 		}
 
@@ -166,7 +238,7 @@ void CheckDirection(int iX, int iY, NODE * pParent, int iDir)
 	if (Jump(iX, iY, iDir, &iX, &iY))
 	{
 		ltOpenlist.push_back(CreateNode(iX, iY, pParent->fG + 1, pParent));
-		MAP[iY][iX] = CREATE;
+		if (MAP[iY][iX] == BLANK)	MAP[iY][iX] = CREATE;
 	}
 }
 
@@ -181,84 +253,18 @@ BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY)
 
 	*pX = iX;
 	*pY = iY;
-	if (MAP[iY][iX] == BLANK) MAP[iY][iX] = iDir;
 
 	// µµÂøÁöÁ¡
 	if (iX == iEndX && iY == iEndY)
 		return TRUE;
-	/*
-	// o
-	// x¤±
-	else if (MAP[iY][iX - 1] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK)
-	{
-		if (Jump(iX - 1, iY - 1, LU, &iX, &iY) || Jump(iX, iY - 1, UU, &iX, &iY))
-			return TRUE;
-	}
-
-	//   o
-	// ¤±x
-	else if (MAP[iY][iX + 1] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK)
-	{
-		if (Jump(iX + 1, iY - 1, RU, &iX, &iY) || Jump(iX, iY - 1, UU, &iX, &iY))
-			return TRUE;
-	}
-
-	// x o
-	// ¤±
-	else if (MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK)
-	{
-		if (Jump(iX + 1, iY - 1, RU, &iX, &iY) || Jump(iX + 1, iY, RR, &iX, &iY))
-			return TRUE;
-	}
-
-	// ¤±
-	// x o
-	else if (MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK)
-	{
-		if (Jump(iX + 1, iY + 1, RD, &iX, &iY) || Jump(iX + 1, iY, RR, &iX, &iY))
-			return TRUE;
-	}
-
-	// o x
-	//   ¤±
-	else if (MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK)
-	{
-		if (Jump(iX - 1, iY - 1, LU, &iX, &iY) || Jump(iX - 1, iY, LL, &iX, &iY))
-			return TRUE;
-	}
-
-	//   ¤±
-	// o x
-	else if (MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK)
-	{
-		if (Jump(iX - 1, iY + 1, LD, &iX, &iY) || Jump(iX - 1, iY, LL, &iX, &iY))
-			return TRUE;
-	}
-
-	// x ¤±
-	// o 
-	else if (MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK)
-	{
-		if (Jump(iX - 1, iY + 1, LD, &iX, &iY) || Jump(iX, iY + 1, DD, &iX, &iY))
-			return TRUE;
-
-	}
-
-	// ¤± x
-	//    o
-	else if (MAP[iY][iX + 1] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK)
-	{
-		if (Jump(iX + 1, iY + 1, RD, &iX, &iY) || Jump(iX, iY + 1, DD, &iX, &iY))
-			return TRUE;
-	}
-	*/
+	
 	switch (iDir)
 	{
 	case UU:
 		if ((MAP[iY][iX - 1] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK) ||
 			(MAP[iY][iX + 1] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK))
 			return TRUE;
-		MAP[iY][iX] = UU;
+
 		Jump(iX, iY - 1, iDir, pX, pY);
 		break;
 
@@ -267,10 +273,19 @@ BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY)
 			(MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK))
 			return TRUE;
 
-		Jump(iX + 1, iY - 1, iDir, pX, pY);
+		if (Jump(iX, iY - 1, UU, pX, pY))
+		{
+			*pY = iY;
+			return TRUE;
+		}
 
-		if		(Jump(iX, iY - 1, UU, pX, pY))  *pY = iY;
-		else if (Jump(iX + 1, iY, RR, pX, pY)) *pX = iX;
+		if (Jump(iX + 1, iY, RR, pX, pY))
+		{
+			*pX = iX;
+			return TRUE;
+		}
+
+		Jump(iX + 1, iY - 1, iDir, pX, pY);
 			
 		break;
 
@@ -283,12 +298,21 @@ BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY)
 		break;
 
 	case RD:
-		if ((MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX + 1] == BLANK) ||
-			(MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK))
+		if ((MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK) ||
+			(MAP[iY][iX + 1] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK))
 			return TRUE;
 
-		if (Jump(iX, iY + 1, DD, pX, pY))	*pY = iY;
-		else if (Jump(iX + 1, iY, RR, pX, pY))  *pX = iX;
+		if (Jump(iX, iY + 1, DD, pX, pY))
+		{
+			*pY = iY;
+			return TRUE;
+		}
+
+		if (Jump(iX + 1, iY, RR, pX, pY))
+		{
+			*pX = iX;
+			return TRUE;
+		}
 
 		Jump(iX + 1, iY + 1, iDir, pX, pY);	
 		
@@ -298,33 +322,57 @@ BOOL Jump(int iX, int iY, int iDir, int *pX, int *pY)
 		if ((MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK) ||
 			(MAP[iY][iX + 1] == OBSTICLE && MAP[iY + 1][iX + 1] == BLANK))
 			return TRUE;
-		MAP[iY][iX] = DD;
+	
 		Jump(iX, iY + 1, iDir, pX, pY);
 		break;
 
 	case LD:
-		MAP[iY][iX] = LD;
-		if (!Jump(iX - 1, iY + 1, iDir, pX, pY))
+		if ((MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK) ||
+			(MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK))
+			return TRUE;
+
+		if (Jump(iX, iY + 1, DD, pX, pY))
 		{
-			Jump(iX - 1, iY, LL, pX, pY);
-			Jump(iX, iY + 1, DD, pX, pY);
+			*pY = iY;
+			return TRUE;
 		}
+
+		if (Jump(iX - 1, iY, LL, pX, pY))
+		{
+			*pX = iX;
+			return TRUE;
+		}
+
+		Jump(iX - 1, iY + 1, iDir, pX, pY);
+
 		break;
 
 	case LL:
 		if ((MAP[iY - 1][iX] == OBSTICLE && MAP[iY - 1][iX - 1] == BLANK)||
 			(MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK))
-		MAP[iY][iX] = LL;
+	
 		Jump(iX - 1, iY, iDir, pX, pY);
 		break;
 
 	case LU:
-		MAP[iY][iX] = LU;
-		if (!Jump(iX - 1, iY - 1, iDir, pX, pY))
+		if ((MAP[iY + 1][iX] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK) ||
+			(MAP[iY][iX - 1] == OBSTICLE && MAP[iY + 1][iX - 1] == BLANK))
+			return TRUE;
+
+		if (Jump(iX, iY - 1, UU, pX, pY))
 		{
-			Jump(iX - 1, iY, LL, pX, pY);
-			Jump(iX, iY - 1, UU, pX, pY);
+			*pY = iY;
+			return TRUE;
 		}
+
+		if (Jump(iX - 1, iY, LL, pX, pY))
+		{
+			*pX = iX;
+			return TRUE;
+		}
+
+		Jump(iX - 1, iY - 1, iDir, pX, pY);
+
 		break;
 	}
 }
@@ -458,6 +506,7 @@ void DrawMap(HDC hdc)
 				DeleteObject(hBrushOld);
 			}
 
+			/*
 			switch (MAP[iCntY][iCntX])
 			{
 			case UU:
@@ -556,6 +605,7 @@ void DrawMap(HDC hdc)
 				DeleteObject(hBrushOld);
 				break;
 			}
+			*/
 		}
 	}
 	SelectObject(hdc, hPenOld);

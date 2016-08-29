@@ -1,9 +1,9 @@
 #ifndef __ASTAR__H__
 #define __ASTAR__H__
 
-#define MAPSIZE_Y 60
-#define MAPSIZE_X 80
-#define TILE_SIZE 15
+#define MAPSIZE_Y 20
+#define MAPSIZE_X 40
+#define TILE_SIZE 30
 
 #define UU 10
 #define RU 11
